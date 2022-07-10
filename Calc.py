@@ -1,20 +1,20 @@
 import cmath
 import numpy as np
+import numba as nb
 
 # Функция расчета DOS и вывода значений в файл
 # Сравнить с существующей программой
-def DOS(name, dname, min=None, max=None, gam=None, step=None, Nsys=None):
+@nb.njit(fastmath = True)
+def DOS(name, dname, lam, min=None, max=None, gam=None, step=None, Nsys=None):
     dfail = open(dname + ".txt", "w")
 
     gr = - float(min)
     while gr < float(max):
-        fail = open(name + ".txt", "r")
         dos = 0
-        for line in fail:
+        for line in nb.prange(lam):
             dos = dos + (1 / (cmath.pi * Nsys)) * (gam / (gam ** 2 + (float(line) - gr) ** 2))
         dfail.write(str(dos) + "\n")
         gr += step
-        fail.close()
 
     dfail.close()
 
@@ -32,13 +32,14 @@ def Energ(dname, min=None, max=None, step=None):
 
 # Функция расчета IPR для одной системы
 # Необходимо проверить корректность работы (сравнить с существующей программой)
+@nb.jit(nopython=True)
 def IPR(mas, Nlvl, n):
     ipr = 0
     nn = 0  # Вспомогательная переменная
 
     for i in range(Nlvl):
-        ipr += mas[n * 2][i] ** 2 + mas[n * 2 + 1][i] ** 2
-        nn += (mas[n * 2][i] + mas[n * 2 + 1][i]) ** 2
+        ipr += mas[n * 2][i] ** 4 + mas[n * 2 + 1][i] ** 4
+        nn += (mas[n * 2][i] ** 2 + mas[n * 2 + 1][i] ** 2) ** 2
 
     ipr = ipr / nn
     return ipr
@@ -62,8 +63,8 @@ def Sort(mas1, mas2, fst, lst):
             mas2[i], mas2[j] = mas2[j], mas2[i]
             i, j = i + 1, j - 1
 
-    else:
-        return Sort(mas1, mas2, fst, j), Sort(mas1, mas2, i, lst)
+    Sort(mas1, mas2, fst, j)
+    Sort(mas1, mas2, i, lst)
 
 
 def avengIpr(Lam, Ipr):
@@ -94,3 +95,17 @@ def avengIpr(Lam, Ipr):
     return aLam, aIpr
     del aLam
     del aIpr
+
+
+def Optim(Lam, Ipr):
+    aveI = []
+    aveL = []
+
+    for i in range(len(Lam)):
+        if Lam[i] != 0 and Ipr[i] != 0:
+            aveL.append(Lam[i])
+            aveI.append(Ipr[i])
+        else:
+            break
+
+    return aveL, aveI

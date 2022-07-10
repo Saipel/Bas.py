@@ -1,5 +1,8 @@
 import numpy as np
 import random
+from numba import prange, jit
+
+
 
 def Bas(Nsys):
     bas = np.empty(4 * Nsys, dtype=str)
@@ -15,11 +18,10 @@ def Bas(Nsys):
     del bas
 
 
-
 def sHam(bas, Nsys):
     ham = np.empty((2*Nsys, 2*4*Nsys), dtype=str)
-    for i in range (2*Nsys):
-        for j in range(0, 2*4*Nsys, 4):
+    for i in prange (2*Nsys):
+        for j in prange(0, 2*4*Nsys, 4):
             ham[i][j + 0] = str(bas[0 + 2*i])
             ham[i][j + 1] = str(bas[1 + 2*i])
             ham[i][j + 2] = str(bas[0 + 2*int(j/4)])
@@ -27,11 +29,13 @@ def sHam(bas, Nsys):
     return(ham)
     del ham
 
+
 def out (ham, Nsys):
-    for i in range (2*Nsys):
-        for j in range(0, 2*4*Nsys, 4):
+    for i in prange (2*Nsys):
+        for j in prange(0, 2*4*Nsys, 4):
             print("<", ham[i][j], ham[i][j+1],"|", "H", "|", ham[i][j+2], ham[i][j+3], ">", end="\t")
         print("\n")
+
 
 def zHam (ham, Nsys, w, t,eps):
 
@@ -41,13 +45,13 @@ def zHam (ham, Nsys, w, t,eps):
 
     fham = np.zeros((2 * Nsys, 2 * Nsys), dtype=float)
     p = 0       #переменная отвечает за перебор значений в массиве потенциалов
-    for i in range(2*Nsys):
+    for i in prange(2*Nsys):
         k = 0               #переменая отвечает за перебор элементов в массивве перескока
 
         if p == len(eps):
             p = 0
 
-        for j in range(0, 2*4*Nsys, 4):
+        for j in prange(0, 2*4*Nsys, 4):
             if ham[i][j+0] == ham[i][j+2] and ham[i][j+1] == ham[i][j+3]:
                 fham[i][int(j/4)] = eps[p]
                 p += 1
