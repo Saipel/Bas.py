@@ -4,15 +4,14 @@ import numba as nb
 
 # Функция расчета DOS и вывода значений в файл
 # Сравнить с существующей программой
-@nb.njit(fastmath = True)
 def DOS(name, dname, lam, min=None, max=None, gam=None, step=None, Nsys=None):
     dfail = open(dname + ".txt", "w")
 
     gr = - float(min)
     while gr < float(max):
         dos = 0
-        for line in nb.prange(lam):
-            dos = dos + (1 / (cmath.pi * Nsys)) * (gam / (gam ** 2 + (float(line) - gr) ** 2))
+        for i in nb.prange(len(lam)):
+            dos = dos + (1 / (cmath.pi * Nsys)) * (gam / (gam ** 2 + (lam[i] - gr) ** 2))
         dfail.write(str(dos) + "\n")
         gr += step
 
