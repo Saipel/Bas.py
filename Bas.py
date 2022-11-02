@@ -18,7 +18,7 @@ def Bas(Nsys):
     del bas
 
 
-def sHam(bas, Nsys):
+def sHam(bas, Nsys):        # Hamil array with symbol
     ham = np.empty((2*Nsys, 2*4*Nsys), dtype=str)
     for i in prange (2*Nsys):
         for j in prange(0, 2*4*Nsys, 4):
@@ -37,23 +37,23 @@ def out (ham, Nsys):
         print("\n")
 
 
-def zHam (ham, Nsys, w, t,eps):
+def zHam (ham, Nsys, w, t, array_of_potential):
 
 #    Заолняем массив потенцилов
-    for i in range(len(eps)):
-        eps[i] = random.uniform(-w/2, w/2)
+    for i in range(len(array_of_potential)):
+        array_of_potential[i] = random.uniform(-w / 2, w / 2)
 
     fham = np.zeros((2 * Nsys, 2 * Nsys), dtype=float)
     p = 0       #переменная отвечает за перебор значений в массиве потенциалов
     for i in prange(2*Nsys):
         k = 0               #переменая отвечает за перебор элементов в массивве перескока
 
-        if p == len(eps):
+        if p == len(array_of_potential):
             p = 0
 
         for j in prange(0, 2*4*Nsys, 4):
             if ham[i][j+0] == ham[i][j+2] and ham[i][j+1] == ham[i][j+3]:
-                fham[i][int(j/4)] = eps[p]
+                fham[i][int(j/4)] = array_of_potential[p]
                 p += 1
             if ham[i][j+0] == ham[i][j+2] and (int(ham[i][j+1]) == (int(ham[i][j+3]) + 1)
                 or int(ham[i][j+1]) + 1 == int(ham[i][j+3]) or int(ham[i][j+1]) == int(ham[i][j+3])+Nsys-1

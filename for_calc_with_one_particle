@@ -1,0 +1,39 @@
+import threading as thg
+
+import numpy as np
+
+from numba import prange, jit
+
+import Bas
+import Calc
+import Output
+from Func_with_calc import sys_without_inter_for_diff_number_state, all_output_for_sys_without_inter
+
+
+Nlvl = int(input("Num of lvl\t"))
+bas = Bas.Bas(Nlvl)
+
+print(bas)
+
+ham = Bas.sHam(bas, Nlvl)
+del bas
+Bas.out(ham, Nlvl)
+
+w = int(input("Zone width\t"))
+t = np.empty(Nlvl - 1)
+
+# Рассматривается только перескоки с соседних уровней
+for i in prange(Nlvl - 1):
+    t[i] = w / 6
+
+array_of_potential = np.empty(Nlvl)
+
+Nsys = int(input("Number of sys\t"))
+
+lamName = "Lam"
+lam = []
+Ipr = []
+for i in prange(Nsys):
+    sys_without_inter_for_diff_number_state(ham, Nlvl, w, t, array_of_potential, lam, Ipr)
+
+all_output_for_sys_without_inter(lam, lamName, Ipr, Nsys)

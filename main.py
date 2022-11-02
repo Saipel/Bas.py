@@ -1,89 +1,68 @@
-import threading as thg
-
 import numpy as np
+#from numba import njit, prange
 
-from numba import prange, jit
+import Calc_with_inter as CWI
 
-import Bas
-import Calc
-import Output
-
-Nlvl = int(input("Num of lvl\t"))
-bas = Bas.Bas(Nlvl)
-
-print(bas)
-
-ham = Bas.sHam(bas, Nlvl)
-del bas
-Bas.out(ham, Nlvl)
-
-w = int(input("Zone width\t"))
-t = np.empty(Nlvl - 1)
-
-# Рассматривается только перескоки с соседних уровней
-for i in prange(Nlvl - 1):
-    t[i] = w / 6
-
-eps = np.empty(Nlvl)
-
-Nsys = int(input("Number of sys\t"))
-
-lamName = "Lam"
-lam = []
-Ipr = []
-for i in prange(Nsys):
-    fham = Bas.zHam(ham, Nlvl, w, t, eps)  # заполнение массива
-
-    # print(fham, end="\n\n")
-
-    wb, vb = np.linalg.eigh(fham)
-    #print(wb)
-    k = 0
-    while k < len(wb):
-        lam.append(wb[k])
-        k+=2
-    del wb
-    #print(wb2)
-
-    for j in range(Nlvl):
-        Ipr.append(Calc.IPR(vb, Nlvl, j))
-    #print(Ipr)
-    del vb
-    # print(wb2)
-
-    del fham
-del ham
-
-Output.OutPut(lam, lamName)
-
-#print("lam = ",lam)
-#print("Ipr = ",Ipr)
-
-Calc.Sort(lam, Ipr, 0, len(lam)-1)
-
-lam.append(0)
-Ipr.append(0)
+# основные константы
+coulomb_potential = int(input("coulomb potential\t"))
+zone_wight = int(input("zone_wight\t"))
+#number_of_case = int(input("number_of_case\t"))
+systems_of_number = int(input("systems_of_number\t"))
 
 
+# создание массива для записи значения энергии состояния и коэффициентов перед дельта функцией
+array_with_energy_for_calculate = np.zeros((3, systems_of_number * 18))
 
-#print("lam = ",lam)
-#print("Ipr = ",Ipr)
+number_of_elements_per_line = 0
 
-dosName = "DOS"
-Ds = thg.Thread(target=Calc.DOS, args=(lamName, dosName, lam, 4, 4, 0.0015, 0.001, Nsys))
-Ds.start()
-sobsName = "Sobs"
-Calc.Energ(sobsName, 4, 4, 0.001)
+for system_number in range(1, systems_of_number + 1):
 
-aLam, aIpr = Calc.avengIpr(lam, Ipr)
+    # создание параметров гамильтониана
+    site_potential, jump_parameter = CWI.create_hamiltonian_parametrs(zone_wight)
+   # print("site_potential = ", site_potential)
+   # print("jump_parameter = ", jump_parameter)
 
-###################################
-aLam, aIpr = Calc.Optim(aLam,aIpr)
 
-avenLamName = "aLam"
-avenIprName = "aIpr"
+    # создание нулевых для всех ground state
+    one_part_ham = CWI.create_null_array_for_all_cases(1)
+    two_part_ham = CWI.create_null_array_for_all_cases(2)
+    three_part_ham = CWI.create_null_array_for_all_cases(3)
+    four_part_ham = CWI.create_null_array_for_all_cases(4)
 
-x = thg.Thread(target=Output.OutPut, args = (aLam, avenLamName))
-y = thg.Thread(target=Output.OutPut, args = (aIpr, avenIprName))
-x.start()
-y.start()
+
+    # Запись параметров гамильтониана в нулевой массив
+    one_part_ham = CWI.hamiltanian_arays_with_int_for_all_cases(1, one_part_ham, site_potential, jump_parameter,
+                                                 coulomb_potential)
+    two_part_ham = CWI.hamiltanian_arays_with_int_for_all_cases(2, two_part_ham, site_potential, jump_parameter,
+                                                 coulomb_potential)
+    three_part_ham = CWI.hamiltanian_arays_with_int_for_all_cases(3, three_part_ham, site_potential, jump_parameter,
+                                                 coulomb_potential)
+    four_part_ham = CWI.hamiltanian_arays_with_int_for_all_cases(4, four_part_ham, site_potential, jump_parameter,
+                                                 coulomb_potential)
+
+
+    # вычисление массивов собственных значений для всех случаев
+    one_eigenvalue_array = CWI.calc_eigenvalue_array(one_part_ham, 1)
+    two_eigenvalue_array = CWI.calc_eigenvalue_array(two_part_ham, 2)
+    three_eigenvalue_array = CWI.calc_eigenvalue_array(three_part_ham, 3)
+    four_eigenvalue_array = CWI.calc_eigenvalue_array(four_part_ham, 4)
+
+
+    # вычисление собственных векторов
+    one_eigenvectors_array = CWI.calc_eigenvectors_of_an_array(one_part_ham)
+    two_eigenvectors_array = CWI.calc_eigenvectors_of_an_array(two_part_ham)
+    three_eigenvectors_array = CWI.calc_eigenvectors_of_an_array(three_part_ham)
+
+    # Составление массива энергий для дельта функций
+    array_with_state_energy = CWI.array_with_state_energy(one_eigenvalue_array, two_eigenvalue_array, three_eigenvalue_array, four_eigenvalue_array)
+
+
+    # комментарий
+    number_of_elements_per_line = CWI.array_with_self_energ_and_(array_with_state_energy, one_eigenvectors_array, two_eigenvectors_array, three_eigenvectors_array,
+                                   array_with_energy_for_calculate, number_of_elements_per_line, system_number)
+
+print("array for calc = \n", array_with_energy_for_calculate)
+
+CWI.DOS_calc_for_inter_system(array_with_energy_for_calculate, zone_wight)
+
+CWI.ensemble_averaged_GIPR(array_with_energy_for_calculate, zone_wight)
