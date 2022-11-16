@@ -73,13 +73,9 @@ def approx_of_delta_function(energ_resolution, energ_of_state, energy_distributi
 def calc_eigenvalue_array(array_for_calc, number_of_case):
     array_for_output = []
     if number_of_case != 4:
-        intermediate_stage, _ = np.linalg.eigh(array_for_calc)
+        intermediate_stage, _ = np.linalg.eig(array_for_calc)
         # print("intermediate_stage = ", intermediate_stage)
-
-        for i in range(len(intermediate_stage) - 1):
-            if int(intermediate_stage[i] * 10000) != int(intermediate_stage[i + 1] * 10000):
-                array_for_output.append(intermediate_stage[i])
-        array_for_output.append(intermediate_stage[len(intermediate_stage) - 1])
+        return intermediate_stage
     else:
         array_for_output.append(array_for_calc)
 
@@ -87,7 +83,7 @@ def calc_eigenvalue_array(array_for_calc, number_of_case):
 
 
 def calc_eigenvectors_of_an_array(array_for_calc):
-    _, intermediate_stage = np.linalg.eigh(array_for_calc)
+    _, intermediate_stage = np.linalg.eig(array_for_calc)
     # print("intarmidate of vector array = \n", intermediate_stage)
 
     return intermediate_stage
@@ -102,11 +98,11 @@ def array_with_state_energy(one_part_array, two_part_array, three_part_array, fo
     intermediate_stage[1] = one_part_array[1]
 
     # one particle ground state
-    intermediate_stage[2] = two_part_array[1] - one_part_array[0]
+    intermediate_stage[2] = two_part_array[5] - one_part_array[0]
     intermediate_stage[3] = one_part_array[0]
     intermediate_stage[4] = two_part_array[0] - one_part_array[0]
-    intermediate_stage[5] = two_part_array[2] - one_part_array[0]
-    intermediate_stage[6] = two_part_array[3] - one_part_array[0]
+    intermediate_stage[5] = two_part_array[1] - one_part_array[0]
+    intermediate_stage[6] = two_part_array[2] - one_part_array[0]
 
     # two particle ground state
     intermediate_stage[7] = three_part_array[0] - two_part_array[0]
@@ -115,11 +111,11 @@ def array_with_state_energy(one_part_array, two_part_array, three_part_array, fo
     intermediate_stage[10] = two_part_array[0] - one_part_array[1]
 
     # three particle ground state
-    intermediate_stage[11] = three_part_array[0] - two_part_array[1]
+    intermediate_stage[11] = three_part_array[0] - two_part_array[5]
     intermediate_stage[12] = four_part_array - three_part_array[0]
     intermediate_stage[13] = three_part_array[0] - two_part_array[0]
-    intermediate_stage[14] = three_part_array[0] - two_part_array[2]
-    intermediate_stage[15] = three_part_array[0] - two_part_array[3]
+    intermediate_stage[14] = three_part_array[0] - two_part_array[1]
+    intermediate_stage[15] = three_part_array[0] - two_part_array[2]
 
     # four particle ground state
     intermediate_stage[16] = four_part_array - three_part_array[0]
@@ -179,21 +175,21 @@ def array_with_self_energ_and_(energ_of_state, one_part_ham, two_part_ham,
 
     # energy second translation on diff site
     array_with_energy_for_calculate[1][3 + number_of_elements_per_line] = 0.25 * (
-            1 / math.sqrt(2) * two_part_ham[3][4] * (one_part_ham[1][0] + one_part_ham[3][0]) +
-            two_part_ham[4][4] * (one_part_ham[0][0] + one_part_ham[2][0])) ** 2
+            1 / math.sqrt(2) * two_part_ham[3][2] * (one_part_ham[1][0] + one_part_ham[3][0]) +
+            two_part_ham[4][2] * (one_part_ham[0][0] + one_part_ham[2][0])) ** 2
 
     array_with_energy_for_calculate[2][3 + number_of_elements_per_line] = 0.25 * (
-            1 / math.sqrt(2) * two_part_ham[3][4] * (one_part_ham[0][0] + one_part_ham[2][0]) +
-            two_part_ham[5][4] * (one_part_ham[1][0] + one_part_ham[3][0])) ** 2
+            1 / math.sqrt(2) * two_part_ham[3][2] * (one_part_ham[0][0] + one_part_ham[2][0]) +
+            two_part_ham[5][2] * (one_part_ham[1][0] + one_part_ham[3][0])) ** 2
 
     # energy second translation on diff site
     array_with_energy_for_calculate[1][4 + number_of_elements_per_line] = 0.25 * (
-            1 / math.sqrt(2) * two_part_ham[3][5] * (one_part_ham[1][0] + one_part_ham[3][0]) +
-            two_part_ham[4][5] * (one_part_ham[0][0] + one_part_ham[2][0])) ** 2
+            1 / math.sqrt(2) * two_part_ham[3][1] * (one_part_ham[1][0] + one_part_ham[3][0]) +
+            two_part_ham[4][1] * (one_part_ham[0][0] + one_part_ham[2][0])) ** 2
 
     array_with_energy_for_calculate[2][4 + number_of_elements_per_line] = 0.25 * (
-            1 / math.sqrt(2) * two_part_ham[3][5] * (one_part_ham[0][0] + one_part_ham[2][0]) +
-            two_part_ham[5][5] * (one_part_ham[1][0] + one_part_ham[3][0])) ** 2
+            1 / math.sqrt(2) * two_part_ham[3][1] * (one_part_ham[0][0] + one_part_ham[2][0]) +
+            two_part_ham[5][1] * (one_part_ham[1][0] + one_part_ham[3][0])) ** 2
 
     number_of_elements_per_line += 5
 
@@ -267,21 +263,21 @@ def array_with_self_energ_and_(energ_of_state, one_part_ham, two_part_ham,
 
     # energy second translation on diff site
     array_with_energy_for_calculate[1][3 + number_of_elements_per_line] = 0.25 * (
-            - 1 / math.sqrt(2) * two_part_ham[3][4] * (three_part_ham[1][0] + three_part_ham[3][0]) +
-            two_part_ham[4][4] * (three_part_ham[0][0] + three_part_ham[2][0])) ** 2
+            - 1 / math.sqrt(2) * two_part_ham[3][2] * (three_part_ham[1][0] + three_part_ham[3][0]) +
+            two_part_ham[4][2] * (three_part_ham[0][0] + three_part_ham[2][0])) ** 2
 
     array_with_energy_for_calculate[2][3 + number_of_elements_per_line] = 0.25 * (
-            - 1 / math.sqrt(2) * two_part_ham[3][4] * (three_part_ham[0][0] + three_part_ham[2][0]) +
-            two_part_ham[5][4] * (three_part_ham[1][0] + three_part_ham[3][0])) ** 2
+            - 1 / math.sqrt(2) * two_part_ham[3][2] * (three_part_ham[0][0] + three_part_ham[2][0]) +
+            two_part_ham[5][2] * (three_part_ham[1][0] + three_part_ham[3][0])) ** 2
 
     # energy second translation on diff site
     array_with_energy_for_calculate[1][4 + number_of_elements_per_line] = 0.25 * (
-            - 1 / math.sqrt(2) * two_part_ham[3][5] * (three_part_ham[1][0] + three_part_ham[3][0]) +
-            two_part_ham[4][5] * (three_part_ham[0][0] + three_part_ham[2][0])) ** 2
+            - 1 / math.sqrt(2) * two_part_ham[3][1] * (three_part_ham[1][0] + three_part_ham[3][0]) +
+            two_part_ham[4][1] * (three_part_ham[0][0] + three_part_ham[2][0])) ** 2
 
     array_with_energy_for_calculate[2][4 + number_of_elements_per_line] = 0.25 * (
-            - 1 / math.sqrt(2) * two_part_ham[3][5] * (three_part_ham[0][0] + three_part_ham[2][0]) +
-            two_part_ham[5][5] * (three_part_ham[1][0] + three_part_ham[3][0])) ** 2
+            - 1 / math.sqrt(2) * two_part_ham[3][1] * (three_part_ham[0][0] + three_part_ham[2][0]) +
+            two_part_ham[5][1] * (three_part_ham[1][0] + three_part_ham[3][0])) ** 2
 
     number_of_elements_per_line += 5
 
@@ -307,16 +303,19 @@ def array_with_self_energ_and_(energ_of_state, one_part_ham, two_part_ham,
 
 
 # @njit(parallel=True)
-def DOS_calc_for_inter_system(ener_array, zone_weight):
-    energy_distribution = - zone_weight / 2
-    while energy_distribution < zone_weight / 2:
-        dos = 0
-        for array_element in range(len(ener_array)):
-            dos = dos + (ener_array[1][array_element] + ener_array[2][array_element]) * \
-                  approx_of_delta_function(0.0015, ener_array[0][array_element], energy_distribution)
-        zone_weight += 0.01
+def DOS_calc_for_inter_system(energ_array, zone_weight, number_of_sys, coulomb_potential):
+    energy_distribution = energ_array[0][0] - 0.5
+    while energy_distribution < energ_array[0][number_of_sys * 18 - 1] + 0.5:
 
-        output_to_file('DOS for system with interaction' + '  U = 0', str(dos))
+        #element_index = binary_search_recursive(energ_array, energy_distribution, 0, len(energ_array[0]) - 1)
+        dos = 0
+        for array_element in range(0, len(energ_array[0]) - 1):
+            dos = dos + (energ_array[1][array_element] + energ_array[2][array_element]) * \
+                      approx_of_delta_function(0.0015, energ_array[0][array_element], energy_distribution)
+
+        energy_distribution += 0.002
+
+        output_to_file('DOS for system with interaction U = ' + str(coulomb_potential), str(dos / number_of_sys))
 
 
 # Возможно не стоит подавать весь массив, если нужна только энергия и коэффициенты
@@ -335,28 +334,29 @@ def GIPR(energ_array, array_element, energy_distribution):
 
 # допилить логику
 # @njit(parallel=True)
-def ensemble_averaged_GIPR(energ_array, zone_weight):
-    energy_distribution = - zone_weight / 2
-    while energy_distribution < zone_weight / 2:
+def ensemble_averaged_GIPR(energ_array, zone_weight,number_of_sys,coulomb_potential):
+    energy_distribution = energ_array[0][0] - 1
+    while energy_distribution < energ_array[0][number_of_sys * 18 - 1] + 1:
+        element_index = binary_search_recursive(energ_array, energy_distribution, 0, len(energ_array[0]) - 1)
         esemble_average_gipr = 0
         intermidate = 0
-        for j in range(len(energ_array)):
-            esemble_average_gipr = esemble_average_gipr + (
-                        (energ_array[1][j] + energ_array[2][j]) * approx_of_delta_function(0.0015, energ_array[0][j],
+
+        for array_element in range(0, len(energ_array[0]) - 1):
+                esemble_average_gipr = esemble_average_gipr + (
+                        (energ_array[1][array_element] + energ_array[2][array_element]) * approx_of_delta_function(0.0015,
+                                                                                           energ_array[0][array_element],
                                                                                            energy_distribution) *
-                        GIPR(energ_array, j, energy_distribution) * approx_of_delta_function(0.0015, energ_array[0][j],
+                        GIPR(energ_array, array_element, energy_distribution) * approx_of_delta_function(0.0015,
+                                                                                             energ_array[0][array_element],
                                                                                              energy_distribution))
-            intermidate = intermidate + (energ_array[1][j] + energ_array[2][j]) * approx_of_delta_function(0.0015,
-                                                                                                           energ_array[
-                                                                                                               0][j],
-                                                                                                           energy_distribution) * (
-                              approx_of_delta_function(0.0015, energ_array[0][j], energy_distribution))
+                intermidate = intermidate + (energ_array[1][array_element] + energ_array[2][array_element]) * approx_of_delta_function(
+                    0.0015, energ_array[0][array_element], energy_distribution) * (
+                                  approx_of_delta_function(0.0015, energ_array[0][array_element], energy_distribution))
 
         esemble_average_gipr = esemble_average_gipr / intermidate
 
-        output_to_file('IPR for system with interaction' + '  U = 0', str(esemble_average_gipr))
-        energy_distribution += 0.01
-
+        output_to_file('IPR for system with interaction U = ' + str(coulomb_potential), str(esemble_average_gipr))
+        energy_distribution += 0.002
 
 def output_to_file(file_name, output_values):
     file = open(file_name + '.txt', 'a')
@@ -366,8 +366,47 @@ def output_to_file(file_name, output_values):
     file.close()
 
 
-def energy_distribution(zone_weight):
-    energy_of_distribution = - zone_weight / 2
-    while energy_of_distribution < zone_weight / 2:
-        output_to_file('energy distribution', str(energy_of_distribution))
-        energy_of_distribution += 0.01
+def energy_distribution(zone_weight, energ_array, number_of_sys,coulomb_potential):
+    energy_distribution = energ_array[0][0] - 1
+    while energy_distribution < energ_array[0][number_of_sys * 18 - 1] + 1:
+        output_to_file('energy_distribution for system with interaction U = ' + str(coulomb_potential), str(energy_distribution))
+        energy_distribution += 0.002
+
+
+def quick_sort(mas, fst, lst):
+    if fst >= lst:
+        return mas
+
+    i, j = fst, lst
+    pivot = mas[0][int((fst + lst) / 2)]
+    while i <= j:
+        while mas[0][i] < pivot:
+            i += 1
+        while mas[0][j] > pivot:
+            j -= 1
+        if i <= j:
+            mas[0][i], mas[0][j] = mas[0][j], mas[0][i]
+            mas[1][i], mas[1][j] = mas[1][j], mas[1][i]
+            mas[2][i], mas[2][j] = mas[2][j], mas[2][i]
+            i, j = i + 1, j - 1
+
+    quick_sort(mas, fst, j)
+    quick_sort(mas, i, lst)
+
+def array_out(array):
+
+    for i in range(len(array[0])):
+        output_to_file("array_with_energy", str(array[0][i]))
+
+def binary_search_recursive(array, element, start, end):
+    if start > end:
+        return -1
+
+    mid = (start + end) // 2
+    if int(array[0][mid] * 1000)/1000 - 0.05 <= element <= int(array[0][mid] * 1000)/1000 + 0.05:
+        return mid
+
+    if element < int(array[0][mid]*1000)/1000 - 0.05:
+        return binary_search_recursive(array, element, start, mid-1)
+    if element > int(array[0][mid] * 1000) / 1000 + 0.05:
+        return binary_search_recursive(array, element, mid+1, end)
