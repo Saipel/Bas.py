@@ -4,7 +4,7 @@ import numpy as np
 import Calc_with_inter as CWI
 
 # основные константы
-coulomb_potential = int(input("coulomb potential\t"))
+coulomb_potential = [4,4]
 zone_wight = int(input("zone_wight\t"))
 #number_of_case = int(input("number_of_case\t"))
 systems_of_number = int(input("systems_of_number\t"))

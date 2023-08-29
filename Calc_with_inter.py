@@ -41,22 +41,21 @@ def hamiltanian_arays_with_int_for_all_cases(number_of_case, null_array, site_po
         null_array[2][3] = null_array[3][2] = -jump_parameter
 
     if number_of_case == 2:
-        null_array[0][0] = null_array[1][1] = null_array[2][2] = null_array[3][3] = site_potential[0] + site_potential[
-            1]
-        null_array[4][4] = 2 * site_potential[0] + coulomb_potential
-        null_array[5][5] = 2 * site_potential[1] + coulomb_potential
+        null_array[0][0] = null_array[1][1] = null_array[2][2] = null_array[3][3] = site_potential[0] + site_potential[1]
+        null_array[4][4] = 2 * site_potential[0] + coulomb_potential[0]
+        null_array[5][5] = 2 * site_potential[1] + coulomb_potential[1]
         null_array[3][4] = null_array[3][5] = null_array[4][3] = null_array[5][3] = - math.sqrt(2) * jump_parameter
 
     if number_of_case == 3:
-        null_array[0][0] = 2 * site_potential[0] + site_potential[1]
-        null_array[1][1] = 2 * site_potential[1] + site_potential[0]
-        null_array[2][2] = 2 * site_potential[0] + site_potential[1]
-        null_array[3][3] = 2 * site_potential[1] + site_potential[0]
-        null_array[0][1] = null_array[1][0] = -jump_parameter
-        null_array[2][3] = null_array[3][2] = -jump_parameter
+        null_array[0][0] = 2 * site_potential[0] + site_potential[1] + coulomb_potential[0]
+        null_array[1][1] = 2 * site_potential[1] + site_potential[0] + coulomb_potential[1]
+        null_array[2][2] = 2 * site_potential[0] + site_potential[1] + coulomb_potential[0]
+        null_array[3][3] = 2 * site_potential[1] + site_potential[0] + coulomb_potential[1]
+        null_array[0][1] = null_array[1][0] = jump_parameter
+        null_array[2][3] = null_array[3][2] = jump_parameter
 
     if number_of_case == 4:
-        null_array = 2 * site_potential[0] + 2 * site_potential[1]
+        null_array = 2 * site_potential[0] + 2 * site_potential[1] + coulomb_potential[0] + coulomb_potential[1]
 
     return null_array
 
@@ -304,14 +303,25 @@ def array_with_self_energ_and_(energ_of_state, one_part_ham, two_part_ham,
 
 # @njit(parallel=True)
 def DOS_calc_for_inter_system(energ_array, zone_weight, number_of_sys, coulomb_potential):
-    energy_distribution = energ_array[0][0] - 0.5
-    while energy_distribution < energ_array[0][number_of_sys * 18 - 1] + 0.5:
+    energy_distribution = energ_array[0][0] - 1
+    while energy_distribution < energ_array[0][number_of_sys * 18 - 1] + 1:
 
-        #element_index = binary_search_recursive(energ_array, energy_distribution, 0, len(energ_array[0]) - 1)
+        element_index = binary_search_recursive(energ_array, energy_distribution, 0, len(energ_array[0]) - 1)
         dos = 0
-        for array_element in range(0, len(energ_array[0]) - 1):
-            dos = dos + (energ_array[1][array_element] + energ_array[2][array_element]) * \
-                      approx_of_delta_function(0.0015, energ_array[0][array_element], energy_distribution)
+        if element_index < 50_000:
+            for array_element in range(0, element_index + 50_000):
+                dos = dos + (energ_array[1][array_element] + energ_array[2][array_element]) * \
+                      approx_of_delta_function(0.15, energ_array[0][array_element], energy_distribution)
+
+        if 50_000 <= element_index < len(energ_array[0]) - 50_000:
+            for array_element in range(element_index - 50_000, element_index + 50_000):
+                dos = dos + (energ_array[1][array_element] + energ_array[2][array_element]) * \
+                      approx_of_delta_function(0.15, energ_array[0][array_element], energy_distribution)
+
+        if element_index >= len(energ_array[0]) - 50_000:
+            for array_element in range(element_index - 50_000, len(energ_array[0]) - 1):
+                dos = dos + (energ_array[1][array_element] + energ_array[2][array_element]) * \
+                      approx_of_delta_function(0.15, energ_array[0][array_element], energy_distribution)
 
         energy_distribution += 0.002
 
@@ -321,13 +331,13 @@ def DOS_calc_for_inter_system(energ_array, zone_weight, number_of_sys, coulomb_p
 # Возможно не стоит подавать весь массив, если нужна только энергия и коэффициенты
 # @njit(parallel=True)
 def GIPR(energ_array, array_element, energy_distribution):
-    gipr = ((energ_array[1][array_element] * approx_of_delta_function(0.0015, energ_array[0][array_element],
+    gipr = ((energ_array[1][array_element] * approx_of_delta_function(0.15, energ_array[0][array_element],
                                                                       energy_distribution)) ** 2 +
-            (energ_array[2][array_element] * approx_of_delta_function(0.0015, energ_array[0][array_element],
+            (energ_array[2][array_element] * approx_of_delta_function(0.15, energ_array[0][array_element],
                                                                       energy_distribution)) ** 2) / (
-                   energ_array[1][array_element] * approx_of_delta_function(0.0015, energ_array[0][array_element],
+                   energ_array[1][array_element] * approx_of_delta_function(0.15, energ_array[0][array_element],
                                                                             energy_distribution) +
-                   energ_array[2][array_element] * approx_of_delta_function(0.0015, energ_array[0][array_element],
+                   energ_array[2][array_element] * approx_of_delta_function(0.15, energ_array[0][array_element],
                                                                             energy_distribution)) ** 2
     return gipr
 
@@ -341,19 +351,48 @@ def ensemble_averaged_GIPR(energ_array, zone_weight,number_of_sys,coulomb_potent
         esemble_average_gipr = 0
         intermidate = 0
 
-        for array_element in range(0, len(energ_array[0]) - 1):
+        if element_index < 50_000:
+            for array_element in range(0, element_index + 50_000):
                 esemble_average_gipr = esemble_average_gipr + (
-                        (energ_array[1][array_element] + energ_array[2][array_element]) * approx_of_delta_function(0.0015,
+                        (energ_array[1][array_element] + energ_array[2][array_element]) * approx_of_delta_function(0.15, energ_array[0][array_element],
+                                                                                           energy_distribution) *
+                        GIPR(energ_array, array_element, energy_distribution) * approx_of_delta_function(0.15, energ_array[0][array_element],
+                                                                                             energy_distribution))
+                intermidate = intermidate + (energ_array[1][array_element] + energ_array[2][array_element]) * approx_of_delta_function(0.15,
+                                                                                                               energ_array[0][array_element],
+                                                                                                               energy_distribution) * (
+                                  approx_of_delta_function(0.15, energ_array[0][array_element], energy_distribution))
+            esemble_average_gipr = esemble_average_gipr / intermidate
+
+        if 50_000 <= element_index < len(energ_array[0]) - 50_000:
+            for array_element in range(element_index - 50_000, element_index + 50_000):
+                esemble_average_gipr = esemble_average_gipr + (
+                        (energ_array[1][array_element] + energ_array[2][array_element]) * approx_of_delta_function(0.15,
                                                                                            energ_array[0][array_element],
                                                                                            energy_distribution) *
-                        GIPR(energ_array, array_element, energy_distribution) * approx_of_delta_function(0.0015,
+                        GIPR(energ_array, array_element, energy_distribution) * approx_of_delta_function(0.15,
                                                                                              energ_array[0][array_element],
                                                                                              energy_distribution))
                 intermidate = intermidate + (energ_array[1][array_element] + energ_array[2][array_element]) * approx_of_delta_function(
-                    0.0015, energ_array[0][array_element], energy_distribution) * (
-                                  approx_of_delta_function(0.0015, energ_array[0][array_element], energy_distribution))
+                    0.15, energ_array[0][array_element], energy_distribution) * (
+                                  approx_of_delta_function(0.15, energ_array[0][array_element], energy_distribution))
 
-        esemble_average_gipr = esemble_average_gipr / intermidate
+            esemble_average_gipr = esemble_average_gipr / intermidate
+
+        if element_index >= len(energ_array[0]) - 50_000:
+            for array_element in range(element_index - 50_000, len(energ_array[0]) - 1):
+                esemble_average_gipr = esemble_average_gipr + (
+                        (energ_array[1][array_element] + energ_array[2][array_element]) * approx_of_delta_function(0.15,
+                                                                                           energ_array[0][array_element],
+                                                                                           energy_distribution) *
+                        GIPR(energ_array, array_element, energy_distribution) * approx_of_delta_function(0.15,
+                                                                                             energ_array[0][array_element],
+                                                                                             energy_distribution))
+                intermidate = intermidate + (energ_array[1][array_element] + energ_array[2][array_element]) * approx_of_delta_function(
+                    0.15, energ_array[0][array_element], energy_distribution) * (
+                                  approx_of_delta_function(0.15, energ_array[0][array_element], energy_distribution))
+
+            esemble_average_gipr = esemble_average_gipr / intermidate
 
         output_to_file('IPR for system with interaction U = ' + str(coulomb_potential), str(esemble_average_gipr))
         energy_distribution += 0.002
