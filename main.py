@@ -1,5 +1,5 @@
 import numpy as np
-#from numba import njit, prange
+
 
 import Calc_with_inter as CWI
 
